@@ -14,6 +14,7 @@ type Context struct {
 	Path       string
 	Method     string
 	StatusCode int
+	Params     map[string]string
 }
 
 func newContext(w http.ResponseWriter, req *http.Request) *Context {
@@ -23,6 +24,11 @@ func newContext(w http.ResponseWriter, req *http.Request) *Context {
 		Path:    req.URL.Path,
 		Method:  req.Method,
 	}
+}
+
+func (c *Context) Param(key string) string {
+	value := c.Params[key]
+	return value
 }
 
 func (c *Context) PostForm(key string) string {
@@ -53,7 +59,7 @@ func (c *Context) JSON(code int, obj any) {
 	c.Status(code)
 	encoder := json.NewEncoder(c.Writer)
 	if err := encoder.Encode(obj); err != nil {
-		http.Error(c.Writer, err.Error(), 500)
+		panic(err)
 	}
 }
 
@@ -67,3 +73,22 @@ func (c *Context) Data(code int, data []byte) {
 	c.Status(code)
 	c.Writer.Write(data)
 }
+
+//func (c *Context) Deadline() (deadline time.Time, ok bool) {
+//	return
+//}
+//
+//func (c *Context) Done() <-chan struct{} {
+//	return nil
+//}
+//
+//func (c *Context) Err() error {
+//	return nil
+//}
+//
+//func (c *Context) Value(key any) any {
+//	if key == 0 {
+//		return c.Request
+//	}
+//	return nil
+//}
