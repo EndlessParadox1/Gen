@@ -16,6 +16,9 @@ type Context struct {
 	Method     string
 	Params     map[string]string
 	StatusCode int
+	// middleware
+	handlers []HandlerFunc
+	index    int
 }
 
 func newContext(w http.ResponseWriter, req *http.Request) *Context {
@@ -73,6 +76,10 @@ func (c *Context) HTML(code int, html string) {
 func (c *Context) Data(code int, data []byte) {
 	c.Status(code)
 	c.Writer.Write(data)
+}
+
+func (c *Context) Next() {
+
 }
 
 func (c *Context) Deadline() (deadline time.Time, ok bool) {
