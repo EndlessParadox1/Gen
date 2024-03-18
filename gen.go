@@ -44,7 +44,7 @@ func (g *RouterGroup) Use(middlewares ...HandlerFunc) {
 	g.middlewares = append(g.middlewares, middlewares...)
 }
 
-func (g *RouterGroup) addRoute(method string, comp string, handler HandlerFunc) {
+func (g *RouterGroup) addRoute(method, comp string, handler HandlerFunc) {
 	path := g.prefix + comp
 	log.Printf("Route %4s - %s\n", method, path)
 	g.engine.router.addRoute(method, path, handler)
@@ -56,6 +56,14 @@ func (g *RouterGroup) GET(path string, handler HandlerFunc) {
 
 func (g *RouterGroup) POST(path string, handler HandlerFunc) {
 	g.addRoute("POST", path, handler)
+}
+
+func (g *RouterGroup) createStaticHandler() {
+
+}
+
+func (g *RouterGroup) Static(relativePath, root string) {
+
 }
 
 func (e *Engine) Run(addr string) error {

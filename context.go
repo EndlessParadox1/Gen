@@ -57,7 +57,7 @@ func (c *Context) Status(code int) {
 	c.Writer.WriteHeader(code)
 }
 
-func (c *Context) SetHeader(key string, value string) {
+func (c *Context) SetHeader(key, value string) {
 	c.Writer.Header().Set(key, value)
 }
 

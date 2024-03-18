@@ -31,7 +31,7 @@ func parsePath(path string) (parts []string) {
 	return
 }
 
-func (r *router) addRoute(method string, path string, handler HandlerFunc) {
+func (r *router) addRoute(method, path string, handler HandlerFunc) {
 	parts := parsePath(path)
 	key := method + "-" + path
 	_, ok := r.roots[method]
@@ -42,7 +42,7 @@ func (r *router) addRoute(method string, path string, handler HandlerFunc) {
 	r.handlers[key] = handler
 }
 
-func (r *router) getRoute(method string, path string) (*node, map[string]string) {
+func (r *router) getRoute(method, path string) (*node, map[string]string) {
 	searchParts := parsePath(path)
 	root, ok := r.roots[method]
 	if !ok {
