@@ -27,6 +27,15 @@ func newContext(w http.ResponseWriter, req *http.Request) *Context {
 		Request: req,
 		Path:    req.URL.Path,
 		Method:  req.Method,
+		index:   -1,
+	}
+}
+
+func (c *Context) Next() {
+	c.index++
+	s := len(c.handlers)
+	for ; c.index < s; c.index++ {
+		c.handlers[c.index](c)
 	}
 }
 
@@ -76,10 +85,6 @@ func (c *Context) HTML(code int, html string) {
 func (c *Context) Data(code int, data []byte) {
 	c.Status(code)
 	c.Writer.Write(data)
-}
-
-func (c *Context) Next() {
-
 }
 
 func (c *Context) Deadline() (deadline time.Time, ok bool) {
