@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 )
 
 type H map[string]any
@@ -74,21 +75,21 @@ func (c *Context) Data(code int, data []byte) {
 	c.Writer.Write(data)
 }
 
-//func (c *Context) Deadline() (deadline time.Time, ok bool) {
-//     return
-//}
-//
-//func (c *Context) Done() <-chan struct{} {
-//     return nil
-//}
-//
-//func (c *Context) Err() error {
-//     return nil
-//}
-//
-//func (c *Context) Value(key any) any {
-//     if key == 0 {
-//             return c.Request
-//     }
-//     return nil
-//}
+func (c *Context) Deadline() (deadline time.Time, ok bool) {
+	return
+}
+
+func (c *Context) Done() <-chan struct{} {
+	return nil
+}
+
+func (c *Context) Err() error {
+	return nil
+}
+
+func (c *Context) Value(key any) any {
+	if key == 0 {
+		return c.Request
+	}
+	return nil
+}

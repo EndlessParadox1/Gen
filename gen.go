@@ -1,6 +1,7 @@
 package gen
 
 import (
+	"log"
 	"net/http"
 )
 
@@ -16,12 +17,17 @@ func New() *Engine {
 	}
 }
 
+func (e *Engine) addRoute(method string, path string, handler HandlerFunc) {
+	log.Printf("Route %4s - %s\n", method, path)
+	e.router.addRoute(method, path, handler)
+}
+
 func (e *Engine) GET(path string, handler HandlerFunc) {
-	e.router.addRoute("GET", path, handler)
+	e.addRoute("GET", path, handler)
 }
 
 func (e *Engine) POST(path string, handler HandlerFunc) {
-	e.router.addRoute("POST", path, handler)
+	e.addRoute("POST", path, handler)
 }
 
 func (e *Engine) Run(addr string) error {
