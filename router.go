@@ -1,6 +1,9 @@
 package gen
 
-import "strings"
+import (
+	"net/http"
+	"strings"
+)
 
 type router struct {
 	roots    map[string]*node
@@ -14,7 +17,7 @@ func newRouter() *router {
 	}
 }
 
-// only one * is allowed
+// Only one * is allowed
 func parsePath(path string) (parts []string) {
 	items := strings.Split(path, "/")
 	for _, item := range items {
@@ -31,11 +34,11 @@ func parsePath(path string) (parts []string) {
 func (r *router) addRoute(method string, path string, handler HandlerFunc) {
 	parts := parsePath(path)
 	key := method + "-" + path
-	root, ok := r.roots[method]
+	_, ok := r.roots[method]
 	if !ok {
 		r.roots[method] = &node{}
 	}
-	root.insert(path, parts, 0)
+	r.roots[method].insert(path, parts, 0)
 	r.handlers[key] = handler
 }
 
@@ -45,16 +48,16 @@ func (r *router) getRoute(method string, path string) (*node, map[string]string)
 	if !ok {
 		return nil, nil
 	}
-	var params map[string]string
+	params := make(map[string]string)
 	n := root.search(searchParts, 0)
 	if n != nil {
 		parts := parsePath(n.path)
-		for i, part := range parts {
+		for index, part := range parts {
 			if part[0] == ':' {
-				params[part[1:]] = searchParts[i]
+				params[part[1:]] = searchParts[index]
 			}
 			if part[0] == '*' && len(part) > 1 {
-				params[part[1:]] = strings.Join(searchParts[i:], "/")
+				params[part[1:]] = strings.Join(searchParts[index:], "/")
 				break
 			}
 		}
@@ -63,13 +66,23 @@ func (r *router) getRoute(method string, path string) (*node, map[string]string)
 	return nil, nil
 }
 
+//func (r *router) getRoutes(method string) []*node {
+//	root, ok := r.roots[method]
+//	if !ok {
+//		return nil
+//	}
+//	nodes := make([]*node, 0)
+//	root.travel(&nodes)
+//	return nodes
+//}
+
 func (r *router) handle(c *Context) {
 	n, params := r.getRoute(c.Method, c.Path)
 	if n != nil {
 		c.Params = params
-		key := c.Method + "-" + c.Path
+		key := c.Method + "-" + n.path
 		r.handlers[key](c)
 	} else {
-		c.String(404, "404 NOT FOUND: %s\n", c.Path)
+		c.String(http.StatusNotFound, "404 NOT FOUND: %s\n", c.Path)
 	}
 }
