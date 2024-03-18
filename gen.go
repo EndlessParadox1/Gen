@@ -40,7 +40,7 @@ func (e *Engine) SetFuncMap(funcMap template.FuncMap) {
 }
 
 func (e *Engine) LoadTemplateGlob(path string) {
-	e.htmlTemplates = template.Must(template.New("").Funcs(e.funcMap).ParseGlob(path)) // batch parse, like *.html
+	e.htmlTemplates = template.Must(template.New("").Funcs(e.funcMap).ParseGlob(path)) // batch parse, like *.tmpl
 }
 
 func (g *RouterGroup) Group(prefix string) *RouterGroup {

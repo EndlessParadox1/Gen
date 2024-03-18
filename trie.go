@@ -1,8 +1,6 @@
 package gen
 
-import (
-	"strings"
-)
+import "strings"
 
 type node struct {
 	path     string
