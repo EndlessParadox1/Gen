@@ -30,6 +30,12 @@ func New() *Engine {
 	engine := &Engine{router: newRouter()}
 	engine.RouterGroup = &RouterGroup{engine: engine}
 	engine.groups = []*RouterGroup{engine.RouterGroup}
+	return engine
+}
+
+// Default use Logger & Recovery middlewares
+func Default() *Engine {
+	engine := New()
 	engine.Use(Logger())
 	return engine
 }
@@ -39,7 +45,7 @@ func (e *Engine) SetFuncMap(funcMap template.FuncMap) {
 	e.funcMap = funcMap
 }
 
-func (e *Engine) LoadTemplateGlob(path string) {
+func (e *Engine) LoadHTMLGlob(path string) {
 	e.htmlTemplates = template.Must(template.New("").Funcs(e.funcMap).ParseGlob(path)) // batch parse, like *.tmpl
 }
 
@@ -58,18 +64,58 @@ func (g *RouterGroup) Use(middlewares ...HandlerFunc) {
 	g.middlewares = append(g.middlewares, middlewares...)
 }
 
-func (g *RouterGroup) addRoute(method, comp string, handler HandlerFunc) {
+func (g *RouterGroup) addRoute(method, comp string, handler ...HandlerFunc) {
 	path_ := g.prefix + comp
 	log.Printf("Route %4s - %s\n", method, path_)
-	g.engine.router.addRoute(method, path_, handler)
+	g.engine.router.addRoute(method, path_, handler...)
 }
 
-func (g *RouterGroup) GET(path string, handler HandlerFunc) {
-	g.addRoute("GET", path, handler)
+func (g *RouterGroup) GET(path string, handler ...HandlerFunc) {
+	g.addRoute("GET", path, handler...)
 }
 
-func (g *RouterGroup) POST(path string, handler HandlerFunc) {
-	g.addRoute("POST", path, handler)
+func (g *RouterGroup) POST(path string, handler ...HandlerFunc) {
+	g.addRoute("POST", path, handler...)
+}
+
+func (g *RouterGroup) DELETE(path string, handler ...HandlerFunc) {
+	g.addRoute("DELETE", path, handler...)
+}
+
+func (g *RouterGroup) PUT(path string, handler ...HandlerFunc) {
+	g.addRoute("PUT", path, handler...)
+}
+
+func (g *RouterGroup) HEAD(path string, handler ...HandlerFunc) {
+	g.addRoute("HEAD", path, handler...)
+}
+
+func (g *RouterGroup) PATCH(path string, handler ...HandlerFunc) {
+	g.addRoute("PATCH", path, handler...)
+}
+
+func (g *RouterGroup) OPTIONS(path string, handler ...HandlerFunc) {
+	g.addRoute("OPTIONS", path, handler...)
+}
+
+func (g *RouterGroup) CONNECT(path string, handler ...HandlerFunc) {
+	g.addRoute("CONNECT", path, handler...)
+}
+
+func (g *RouterGroup) TRACE(path string, handler ...HandlerFunc) {
+	g.addRoute("TRACE", path, handler...)
+}
+
+func (g *RouterGroup) Any(path string, handler ...HandlerFunc) {
+	g.addRoute("GET", path, handler...)
+	g.addRoute("POST", path, handler...)
+	g.addRoute("DELETE", path, handler...)
+	g.addRoute("PUT", path, handler...)
+	g.addRoute("HEAD", path, handler...)
+	g.addRoute("PATCH", path, handler...)
+	g.addRoute("OPTIONS", path, handler...)
+	g.addRoute("CONNECT", path, handler...)
+	g.addRoute("TRACE", path, handler...)
 }
 
 func (g *RouterGroup) createStaticHandler(relativePath string, fs http.FileSystem) HandlerFunc {
