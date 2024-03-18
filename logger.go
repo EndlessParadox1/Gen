@@ -5,6 +5,7 @@ import (
 	"time"
 )
 
+// Logger middleware that top group use
 func Logger() HandlerFunc {
 	return func(c *Context) {
 		t := time.Now()
