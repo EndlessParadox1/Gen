@@ -52,12 +52,12 @@ func (r *router) getRoute(method string, path string) (*node, map[string]string)
 	n := root.search(searchParts, 0)
 	if n != nil {
 		parts := parsePath(n.path)
-		for index, part := range parts {
+		for i, part := range parts {
 			if part[0] == ':' {
-				params[part[1:]] = searchParts[index]
+				params[part[1:]] = searchParts[i]
 			}
 			if part[0] == '*' && len(part) > 1 {
-				params[part[1:]] = strings.Join(searchParts[index:], "/")
+				params[part[1:]] = strings.Join(searchParts[i:], "/")
 				break
 			}
 		}
@@ -66,15 +66,15 @@ func (r *router) getRoute(method string, path string) (*node, map[string]string)
 	return nil, nil
 }
 
-//func (r *router) getRoutes(method string) []*node {
-//	root, ok := r.roots[method]
-//	if !ok {
-//		return nil
-//	}
-//	nodes := make([]*node, 0)
-//	root.travel(&nodes)
-//	return nodes
-//}
+func (r *router) getRoutes(method string) []*node {
+	root, ok := r.roots[method]
+	if !ok {
+		return nil
+	}
+	var nodes []*node
+	root.travel(&nodes)
+	return nodes
+}
 
 func (r *router) handle(c *Context) {
 	n, params := r.getRoute(c.Method, c.Path)
