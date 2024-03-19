@@ -56,6 +56,7 @@ func (c *Context) Param(key string) string {
 	return value
 }
 
+// PostForm for x-www-form-urlencoded POST
 func (c *Context) PostForm(key string) string {
 	return c.Request.FormValue(key)
 }

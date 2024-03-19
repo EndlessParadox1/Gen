@@ -40,15 +40,6 @@ func Default() *Engine {
 	return engine
 }
 
-// SetFuncMap assume that only invoke one time
-func (e *Engine) SetFuncMap(funcMap template.FuncMap) {
-	e.funcMap = funcMap
-}
-
-func (e *Engine) LoadHTMLGlob(path string) {
-	e.htmlTemplates = template.Must(template.New("").Funcs(e.funcMap).ParseGlob(path)) // batch parse, like *.tmpl
-}
-
 func (g *RouterGroup) Group(prefix string) *RouterGroup {
 	engine := g.engine
 	newGroup := &RouterGroup{
@@ -71,51 +62,26 @@ func (g *RouterGroup) addRoute(method, comp string, handler ...HandlerFunc) {
 }
 
 func (g *RouterGroup) GET(path string, handler ...HandlerFunc) {
-	g.addRoute("GET", path, handler...)
+	g.addRoute(http.MethodGet, path, handler...)
 }
 
 func (g *RouterGroup) POST(path string, handler ...HandlerFunc) {
-	g.addRoute("POST", path, handler...)
+	g.addRoute(http.MethodPost, path, handler...)
 }
 
 func (g *RouterGroup) DELETE(path string, handler ...HandlerFunc) {
-	g.addRoute("DELETE", path, handler...)
+	g.addRoute(http.MethodDelete, path, handler...)
 }
 
 func (g *RouterGroup) PUT(path string, handler ...HandlerFunc) {
-	g.addRoute("PUT", path, handler...)
-}
-
-func (g *RouterGroup) HEAD(path string, handler ...HandlerFunc) {
-	g.addRoute("HEAD", path, handler...)
-}
-
-func (g *RouterGroup) PATCH(path string, handler ...HandlerFunc) {
-	g.addRoute("PATCH", path, handler...)
-}
-
-func (g *RouterGroup) OPTIONS(path string, handler ...HandlerFunc) {
-	g.addRoute("OPTIONS", path, handler...)
-}
-
-func (g *RouterGroup) CONNECT(path string, handler ...HandlerFunc) {
-	g.addRoute("CONNECT", path, handler...)
-}
-
-func (g *RouterGroup) TRACE(path string, handler ...HandlerFunc) {
-	g.addRoute("TRACE", path, handler...)
+	g.addRoute(http.MethodPut, path, handler...)
 }
 
 func (g *RouterGroup) Any(path string, handler ...HandlerFunc) {
-	g.addRoute("GET", path, handler...)
-	g.addRoute("POST", path, handler...)
-	g.addRoute("DELETE", path, handler...)
-	g.addRoute("PUT", path, handler...)
-	g.addRoute("HEAD", path, handler...)
-	g.addRoute("PATCH", path, handler...)
-	g.addRoute("OPTIONS", path, handler...)
-	g.addRoute("CONNECT", path, handler...)
-	g.addRoute("TRACE", path, handler...)
+	g.addRoute(http.MethodGet, path, handler...)
+	g.addRoute(http.MethodPost, path, handler...)
+	g.addRoute(http.MethodDelete, path, handler...)
+	g.addRoute(http.MethodPut, path, handler...)
 }
 
 func (g *RouterGroup) createStaticHandler(relativePath string, fs http.FileSystem) HandlerFunc {
@@ -135,6 +101,15 @@ func (g *RouterGroup) Static(relativePath, root string) {
 	handler := g.createStaticHandler(relativePath, http.Dir(root))
 	urlPath := path.Join(relativePath, "/*filePath")
 	g.GET(urlPath, handler)
+}
+
+// SetFuncMap assume that only invoke one time
+func (e *Engine) SetFuncMap(funcMap template.FuncMap) {
+	e.funcMap = funcMap
+}
+
+func (e *Engine) LoadHTMLGlob(path string) {
+	e.htmlTemplates = template.Must(template.New("").Funcs(e.funcMap).ParseGlob(path)) // batch parse, like *.tmpl
 }
 
 func (e *Engine) Run(addr string) error {
