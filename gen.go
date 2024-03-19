@@ -66,7 +66,7 @@ func (g *RouterGroup) Use(middlewares ...HandlerFunc) {
 
 func (g *RouterGroup) addRoute(method, comp string, handler ...HandlerFunc) {
 	path_ := g.prefix + comp
-	log.Printf("Route %4s - %s\n", method, path_)
+	log.Printf("%-7s  %s\n\n", method, path_)
 	g.engine.router.addRoute(method, path_, handler...)
 }
 
@@ -138,6 +138,7 @@ func (g *RouterGroup) Static(relativePath, root string) {
 }
 
 func (e *Engine) Run(addr string) error {
+	log.Printf("Listening and serving HTTP on %s\n", addr)
 	return http.ListenAndServe(addr, e)
 }
 
