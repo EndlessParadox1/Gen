@@ -3,7 +3,9 @@ package gen
 import (
 	"encoding/json"
 	"fmt"
+	"net"
 	"net/http"
+	"strings"
 )
 
 type H map[string]any
@@ -42,6 +44,11 @@ func (c *Context) Next() {
 // Abort Note that this will not stop the current handler.
 func (c *Context) Abort() {
 	c.index = len(c.handlers)
+}
+
+func (c *Context) RemoteIP() string {
+	ip, _, _ := net.SplitHostPort(strings.TrimSpace(c.Request.RemoteAddr))
+	return ip
 }
 
 func (c *Context) Param(key string) string {
