@@ -39,6 +39,11 @@ func (c *Context) Next() {
 	}
 }
 
+// Abort Note that this will not stop the current handler.
+func (c *Context) Abort() {
+	c.index = len(c.handlers)
+}
+
 func (c *Context) Param(key string) string {
 	value := c.Params[key]
 	return value
