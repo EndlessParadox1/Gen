@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func trace(message string) string {
+func traceback(message string) string {
 	var pcs [32]uintptr
 	n := runtime.Callers(3, pcs[:])
 	var s strings.Builder
@@ -26,7 +26,7 @@ func Recovery() HandlerFunc {
 		defer func() {
 			if err := recover(); err != nil {
 				message := fmt.Sprintf("%s", err)
-				log.Printf("%s\n", trace(message))
+				log.Printf("%s\n", traceback(message))
 				c.String(http.StatusInternalServerError, "Internal Server Error")
 			}
 		}()
