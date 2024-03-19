@@ -15,12 +15,13 @@ type RouterGroup struct {
 	engine      *Engine      // all groups share the same engine, to access its `router`
 }
 
-func (g *RouterGroup) Group(prefix string) *RouterGroup {
+func (g *RouterGroup) Group(prefix string, handlers ...HandlerFunc) *RouterGroup {
 	engine := g.engine
 	newGroup := &RouterGroup{
-		prefix: g.prefix + prefix,
-		parent: g,
-		engine: engine,
+		prefix:      g.prefix + prefix,
+		middlewares: handlers,
+		parent:      g,
+		engine:      engine,
 	}
 	engine.groups = append(engine.groups, newGroup)
 	return newGroup
@@ -35,7 +36,7 @@ func (g *RouterGroup) addRoute(method, comp string, handlers ...HandlerFunc) {
 	len_ := len(handlers)
 	f := handlers[len_-1]
 	name := runtime.FuncForPC(reflect.ValueOf(f).Pointer()).Name()
-	log.Printf("%-6s %-25s --> %s (%d handlers)\n", method, path_, name, len_)
+	log.Printf("%-6s %-25s --> %s\n", method, path_, name)
 	g.engine.router.addRoute(method, path_, handlers...)
 }
 
