@@ -6,6 +6,9 @@ import (
 	"path"
 	"reflect"
 	"runtime"
+	"strings"
+
+	"github.com/julienschmidt/httprouter"
 )
 
 type RouterGroup struct {
@@ -37,7 +40,17 @@ func (g *RouterGroup) addRoute(method, comp string, handlers ...HandlerFunc) {
 	f := handlers[len_-1]
 	name := runtime.FuncForPC(reflect.ValueOf(f).Pointer()).Name()
 	log.Printf("%-6s %-25s --> %s\n", method, path_, name)
-	g.engine.router.addRoute(method, path_, handlers...)
+	g.engine.router.Handle(method, path_, func(w http.ResponseWriter, req *http.Request, params httprouter.Params) {
+		c := newContext(w, req, params)
+		c.engine = g.engine
+		for _, group := range g.engine.groups {
+			if strings.HasPrefix(req.URL.Path, group.prefix) {
+				c.handlers = append(c.handlers, group.middlewares...)
+			}
+		}
+		c.handlers = append(c.handlers, handlers...)
+		c.Next()
+	})
 }
 
 func (g *RouterGroup) GET(path string, handlers ...HandlerFunc) {

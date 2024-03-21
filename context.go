@@ -6,33 +6,51 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"reflect"
+	"runtime"
 	"strings"
+	"sync"
+
+	"github.com/julienschmidt/httprouter"
 )
 
 type H map[string]any
 
 type Context struct {
-	Writer     http.ResponseWriter
-	Request    *http.Request
-	Path       string
-	Method     string
-	Params     map[string]string
-	StatusCode int
-	// middleware
+	Writer  http.ResponseWriter
+	Request *http.Request
+
+	Path   string
+	Method string
+	Params httprouter.Params
+
 	handlers []HandlerFunc
 	index    int
 	engine   *Engine
-	Keys     map[string]any
+
+	mu         sync.RWMutex // protects Keys
+	Keys       map[string]any
+	StatusCode int
+	Errors     []*error // Errors is a list of errors attached to all the handlers/middlewares
 }
 
-func newContext(w http.ResponseWriter, req *http.Request) *Context {
+func newContext(w http.ResponseWriter, req *http.Request, params httprouter.Params) *Context {
 	return &Context{
 		Writer:  w,
 		Request: req,
 		Path:    req.URL.Path,
 		Method:  req.Method,
+		Params:  params,
 		index:   -1,
 	}
+}
+
+// HandlerName returns the main handler's name
+func (c *Context) HandlerName() string {
+	len_ := len(c.handlers)
+	f := c.handlers[len_-1]
+	name := runtime.FuncForPC(reflect.ValueOf(f).Pointer()).Name()
+	return name
 }
 
 func (c *Context) Next() {
@@ -59,17 +77,26 @@ func (c *Context) RemoteIP() string {
 }
 
 func (c *Context) Set(key string, value any) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	if c.Keys == nil {
 		c.Keys = make(map[string]any)
-	}
+	} // lazy init
 	c.Keys[key] = value
 }
 
 func (c *Context) Get(key string) (value any, ok bool) {
-	if c.Keys != nil {
-		value, ok = c.Keys[key]
-	}
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	value, ok = c.Keys[key]
 	return
+}
+
+func (c *Context) MustGet(key string) any {
+	if value, ok := c.Get(key); ok {
+		return value
+	}
+	panic("Key \"" + key + "\" does not exist!")
 }
 
 /**********************/
@@ -77,7 +104,7 @@ func (c *Context) Get(key string) (value any, ok bool) {
 /**********************/
 
 func (c *Context) Param(key string) string {
-	value := c.Params[key]
+	value := c.Param(key)
 	return value
 }
 
@@ -104,7 +131,6 @@ func (c *Context) Cookie(name string) (string, error) {
 /***********************/
 
 func (c *Context) Status(code int) {
-	c.StatusCode = code
 	c.Writer.WriteHeader(code)
 }
 

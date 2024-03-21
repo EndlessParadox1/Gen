@@ -4,14 +4,15 @@ import (
 	"html/template"
 	"log"
 	"net/http"
-	"strings"
+
+	"github.com/julienschmidt/httprouter"
 )
 
 type HandlerFunc func(c *Context)
 
 type Engine struct {
 	*RouterGroup
-	router *router
+	router *httprouter.Router
 	groups []*RouterGroup // stores all groups
 	// for html render
 	htmlTemplates *template.Template
@@ -19,7 +20,7 @@ type Engine struct {
 }
 
 func New() *Engine {
-	engine := &Engine{router: newRouter()}
+	engine := &Engine{router: httprouter.New()}
 	engine.RouterGroup = &RouterGroup{engine: engine}
 	engine.groups = []*RouterGroup{engine.RouterGroup}
 	log.SetPrefix("[GEN] ")
@@ -57,14 +58,5 @@ func (e *Engine) RunTLS(addr, certFile, keyFile string) error {
 }
 
 func (e *Engine) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	var middlewares []HandlerFunc // to find all the middlewares
-	for _, group := range e.groups {
-		if strings.HasPrefix(req.URL.Path, group.prefix) {
-			middlewares = append(middlewares, group.middlewares...)
-		}
-	}
-	c := newContext(w, req)
-	c.engine = e
-	c.handlers = middlewares
-	e.router.handle(c)
+	e.router.ServeHTTP(w, req)
 }
