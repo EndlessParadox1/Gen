@@ -14,6 +14,14 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
+const (
+	MIMEJSON      = "application/json"
+	MIMEHTML      = "text/html"
+	MIMEPlain     = "text/plain"
+	MIMEPOSTForm  = "application/x-www-form-urlencoded"
+	MIMEMultipart = "multipart/form-data"
+)
+
 type H map[string]any
 
 type Context struct {
@@ -43,6 +51,27 @@ func newContext(w http.ResponseWriter, req *http.Request, params httprouter.Para
 		Params:  params,
 		index:   -1,
 	}
+}
+
+// Copy returns a copy of the current context that can be safely used outside the request's scope.
+// This has to be used when the context has to be passed to a goroutine.
+func (c *Context) Copy() *Context {
+	cp := Context{
+		Request: c.Request,
+		Path:    c.Path,
+		Method:  c.Method,
+		index:   len(c.handlers),
+		engine:  c.engine,
+	}
+	cp.Keys = make(map[string]any, len(c.Keys))
+	c.mu.RLock()
+	for k, v := range c.Keys {
+		cp.Keys[k] = v
+	}
+	c.mu.RUnlock()
+	cp.Params = make(httprouter.Params, len(c.Params))
+	copy(cp.Params, c.Params)
+	return &cp
 }
 
 // HandlerName returns the main handler's name
