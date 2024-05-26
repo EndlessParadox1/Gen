@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
+	"github.com/quic-go/quic-go/http3"
 )
 
 type HandlerFunc func(c *Context)
@@ -55,6 +56,11 @@ func (e *Engine) Run(addr string) error {
 func (e *Engine) RunTLS(addr, certFile, keyFile string) error {
 	log.Printf("Listening and serving HTTPS on %s\n", addr)
 	return http.ListenAndServeTLS(addr, certFile, keyFile, e)
+}
+
+func (e *Engine) RunQUIC(addr, certFile, keyFile string) error {
+	log.Printf("Listening and serving HTTP3 on %s\n", addr)
+	return http3.ListenAndServeTLS(addr, certFile, keyFile, e)
 }
 
 func (e *Engine) ServeHTTP(w http.ResponseWriter, req *http.Request) {
